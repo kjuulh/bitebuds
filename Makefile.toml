@@ -7,3 +7,18 @@ install_crate = "cargo-all-features"
 command = "cargo"
 args = ["+nightly", "check-all-features"]
 install_crate = "cargo-all-features"
+
+[tasks.watch_tailwind]
+command = "npx"
+args = [
+  "tailwindcss",
+  "-i",
+  "./input.css",
+  "-o",
+  "./style/output.css",
+  "--watch",
+]
+
+[tasks.build_tailwind]
+command = "npx"
+args = ["tailwindcss", "-i", "./input.css", "-o", "./style/output.css"]
