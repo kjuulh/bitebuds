@@ -4,7 +4,6 @@ pub mod api;
 pub mod app;
 mod components;
 pub mod fallback;
-mod models;
 mod pages;
 use cfg_if::cfg_if;
 

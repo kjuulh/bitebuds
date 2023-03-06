@@ -10,20 +10,20 @@ pub fn App(cx: Scope) -> impl IntoView {
     provide_meta_context(cx);
 
     view! { cx,
-    <Stylesheet id="leptos" href="/pkg/ssr_modes.css" />
-    <Title text="Bitebuds" />
+        <Stylesheet id="leptos" href="/pkg/ssr_modes.css" />
+        <Title text="Bitebuds" />
 
-    <Router>
-        <div class="app grid lg:grid-cols-[25%,50%,25%] sm:grid-cols-[10%,80%,10%] grid-cols-[5%,90%,5%]">
-            <main class="main col-start-2">
-                <div class="pt-4">
-                    <h1 class="font-semibold text-xl tracking-wide">"Bitebuds"</h1>
-                    <Routes>
-                        <Route path="" view=|cx| view! { cx, <HomePage /> }/>
-                    </Routes>
-                </div>
-            </main>
-        </div>
-    </Router>
+        <Router>
+            <div class="app grid lg:grid-cols-[25%,50%,25%] sm:grid-cols-[10%,80%,10%] grid-cols-[5%,90%,5%]">
+                <main class="main col-start-2">
+                    <div class="pt-4">
+                        <h1 class="font-semibold text-xl tracking-wide">"Bitebuds"</h1>
+                        <Routes>
+                            <Route path="" view=|cx| view! { cx, <HomePage /> }/>
+                        </Routes>
+                    </div>
+                </main>
+            </div>
+        </Router>
     }
 }

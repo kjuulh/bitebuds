@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use leptos::*;
 use serde::{Deserialize, Serialize};
 
-use crate::models::{Event, EventOverview, Image};
+use domain::{Event, EventOverview, Image};
 
 lazy_static! {
     static ref EVENTS: Vec<Event> = vec![
@@ -18,7 +18,8 @@ lazy_static! {
             description: Some("Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint consectetur cupidatat.".into()),
             time: chrono::Utc::now()
                 .checked_add_days(chrono::Days::new(1))
-                .unwrap(),
+                .unwrap()
+                .date_naive(),
             recipe_id: None,
             images: vec![],
             metadata: None,
@@ -35,7 +36,8 @@ lazy_static! {
             description: Some("Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis.".into()),
             time: chrono::Utc::now()
                 .checked_add_days(chrono::Days::new(4))
-                .unwrap(),
+                .unwrap()
+                .date_naive(),
             recipe_id: None,
             images: vec![],
             metadata: None,
@@ -52,7 +54,8 @@ lazy_static! {
             description: Some("description".into()),
             time: chrono::Utc::now()
                 .checked_sub_days(chrono::Days::new(2))
-                .unwrap(),
+                .unwrap()
+                .date_naive(),
             recipe_id: None,
             images: vec![],
             metadata: None,
@@ -71,15 +74,19 @@ pub async fn get_upcoming_events() -> Result<UpcomingEventsOverview, ServerFnErr
     get_upcoming_events_fn().await
 }
 
+#[cfg(feature = "ssr")]
 async fn get_upcoming_events_fn() -> Result<UpcomingEventsOverview, ServerFnError> {
     let current_time = chrono::Utc::now();
 
-    let mut events: Vec<EventOverview> = EVENTS
+    let es = services::EventStore::default();
+
+    let events = es
+        .get_upcoming_events()
+        .await
+        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
         .iter()
-        .filter(|data| data.time > current_time)
         .map(|data| data.clone().into())
         .collect();
-    events.sort_by(|a, b| a.time.cmp(&b.time));
 
     Ok(UpcomingEventsOverview { events })
 }
@@ -91,6 +98,7 @@ pub async fn get_full_event(event_id: uuid::Uuid) -> Result<Option<Event>, Serve
     get_full_event_fn(event_id).await
 }
 
+#[cfg(feature = "ssr")]
 async fn get_full_event_fn(event_id: uuid::Uuid) -> Result<Option<Event>, ServerFnError> {
     let event = EVENTS
         .iter()

@@ -25,7 +25,7 @@ pub struct Event {
     pub cover_image: Option<Image>,
     pub name: String,
     pub description: Option<String>,
-    pub time: chrono::DateTime<chrono::Utc>,
+    pub time: chrono::NaiveDate,
     pub recipe_id: Option<uuid::Uuid>,
     pub images: Vec<Image>,
     pub metadata: Option<Metadata>,
@@ -37,7 +37,7 @@ pub struct EventOverview {
     pub cover_image: Option<Image>,
     pub name: String,
     pub description: Option<String>,
-    pub time: chrono::DateTime<chrono::Utc>,
+    pub time: chrono::NaiveDate,
 }
 
 impl From<Event> for EventOverview {

@@ -1,3 +1,7 @@
+[workspace]
+members = [".", "crates/services", "crates/domain"]
+
+
 [package]
 name = "ssr_modes_axum"
 version = "0.1.0"
@@ -27,6 +31,9 @@ wasm-bindgen = "0.2"
 chrono = { version = "0.4.23", features = ["serde"] }
 uuid = { version = "1.3.0", features = ["v4", "wasm-bindgen", "js", "serde"] }
 
+domain = { path = "crates/domain" }
+services = { path = "crates/services", optional = true }
+
 [features]
 hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
 ssr = [
@@ -38,6 +45,7 @@ ssr = [
   "leptos_meta/ssr",
   "leptos_router/ssr",
   "dep:leptos_axum",
+  "dep:services",
 ]
 
 [package.metadata.leptos]

@@ -1,0 +1,14 @@
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[package]
+name = "domain"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = { version = "0.4.23", features = ["serde"] }
+serde = { version = "1.0.152", features = ["derive"] }
+uuid = { version = "1.3.0", features = ["v4", "wasm-bindgen", "js", "serde"] }

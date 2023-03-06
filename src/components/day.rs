@@ -2,7 +2,7 @@ use chrono::Datelike;
 use leptos::*;
 
 use crate::api::events::*;
-use crate::models::{EventOverview, Image};
+use domain::{EventOverview, Image};
 
 #[component]
 pub fn Day(
