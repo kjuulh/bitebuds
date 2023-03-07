@@ -6,12 +6,14 @@ use serde::{Deserialize, Serialize};
 pub struct Metadata(HashMap<String, String>);
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Recipe {
     pub id: uuid::Uuid,
     pub metadata: Option<Metadata>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Image {
     pub id: uuid::Uuid,
     pub url: String,
@@ -20,6 +22,7 @@ pub struct Image {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Event {
     pub id: uuid::Uuid,
     pub cover_image: Option<Image>,
@@ -32,6 +35,7 @@ pub struct Event {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EventOverview {
     pub id: uuid::Uuid,
     pub cover_image: Option<Image>,

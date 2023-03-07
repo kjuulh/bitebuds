@@ -1,10 +1,13 @@
 use std::path::PathBuf;
+use std::sync::Arc;
 
+use cached::proc_macro::{cached, once};
 use domain::{Event, Image, Metadata};
 use serde::{Deserialize, Serialize};
 
 pub struct EventStore {
     pub path: PathBuf,
+    events: Arc<tokio::sync::RwLock<Vec<Event>>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -16,6 +19,7 @@ pub struct RawImage {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RawEvent {
+    #[serde(alias = "coverImage")]
     pub cover_image: Option<RawImage>,
     pub name: String,
     pub description: Option<String>,
@@ -29,7 +33,7 @@ pub struct RawEvent {
 }
 
 mod short_time_stamp {
-    use chrono::{DateTime, NaiveDate, TimeZone, Utc};
+    use chrono::NaiveDate;
     use serde::{self, Deserialize, Deserializer, Serializer};
 
     const FORMAT: &'static str = "%Y-%m-%d";
@@ -79,42 +83,65 @@ impl From<RawImage> for Image {
 
 impl EventStore {
     pub fn new(path: PathBuf) -> Self {
-        Self { path }
+        Self {
+            path,
+            events: Default::default(),
+        }
     }
 
     pub async fn get_upcoming_events(&self) -> eyre::Result<Vec<Event>> {
         let mut event_path = self.path.clone();
         event_path.push("events");
-        let mut dir = tokio::fs::read_dir(event_path).await?;
 
-        let mut events = vec![];
+        let events = fetch_events(event_path).await?;
 
-        while let Ok(Some(entry)) = dir.next_entry().await {
-            let metadata = entry.metadata().await?;
-            if metadata.is_file() {
-                let file = tokio::fs::read(entry.path()).await?;
-                let content = std::str::from_utf8(&file)?;
-                if content.starts_with("---\n") {
-                    let after_marker = &content[4..];
-                    if let Some(marker_end) = after_marker.find("---\n") {
-                        let raw_front_matter = &content[4..marker_end + 4];
-                        let mut raw_event: RawEvent = serde_yaml::from_str(raw_front_matter)?;
-                        raw_event.content = content[marker_end + 4..].to_string();
-
-                        events.push(raw_event.into())
-                    }
-                }
-            }
-        }
+        let mut e = self.events.write().await;
+        *e = events.clone();
 
         Ok(events)
     }
+
+    pub async fn get_event(&self, event_id: uuid::Uuid) -> eyre::Result<Option<Event>> {
+        let events = self.events.read().await;
+
+        let event = events.iter().find(|e| e.id == event_id);
+
+        Ok(event.map(|e| e.clone()))
+    }
+}
+
+#[once(time = 60, result = true, sync_writes = true)]
+pub async fn fetch_events(event_path: PathBuf) -> eyre::Result<Vec<Event>> {
+    let mut dir = tokio::fs::read_dir(event_path).await?;
+
+    let mut events = vec![];
+
+    while let Ok(Some(entry)) = dir.next_entry().await {
+        let metadata = entry.metadata().await?;
+        if metadata.is_file() {
+            let file = tokio::fs::read(entry.path()).await?;
+            let content = std::str::from_utf8(&file)?;
+            if content.starts_with("---\n") {
+                let after_marker = &content[4..];
+                if let Some(marker_end) = after_marker.find("---\n") {
+                    let raw_front_matter = &content[4..marker_end + 4];
+                    let mut raw_event: RawEvent = serde_yaml::from_str(raw_front_matter)?;
+                    raw_event.content = content[marker_end + 4..].to_string();
+
+                    events.push(raw_event.into())
+                }
+            }
+        }
+    }
+
+    Ok(events)
 }
 
 impl Default for EventStore {
     fn default() -> Self {
         Self {
             path: PathBuf::from("articles"),
+            events: Default::default(),
         }
     }
 }

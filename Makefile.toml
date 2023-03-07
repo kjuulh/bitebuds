@@ -18,7 +18,15 @@ args = [
   "./style/output.css",
   "--watch",
 ]
+workspace = false
 
 [tasks.build_tailwind]
 command = "npx"
 args = ["tailwindcss", "-i", "./input.css", "-o", "./style/output.css"]
+workspace = false
+
+[tasks.install_biteme]
+command = "cargo"
+args = ["install", "--path", "crates/biteme"]
+workspace = false
+install_crate = "cargo-all-features"

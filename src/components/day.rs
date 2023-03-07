@@ -51,6 +51,12 @@ pub fn Day(
                         <DayContentCollapsed event=event.clone() setter=set_expanded />
                     }.into_view(cx)
                 }}
+            {
+               last.filter(|l| !l).map(|_l| view! {
+                   cx, 
+                   <div class="divider sm:block hidden h-0.5 w-full bg-gray-300 my-6 rounded-full" />
+               }) 
+            }
             </div>
         </div>
         <div class="divider block sm:hidden h-0.5 w-full bg-gray-300 my-6 rounded-full" />
@@ -188,8 +194,8 @@ fn DayContentCollapsed(
                 }}
             <div class="flex-grow" />
             <button
-            on:click=move |_| setter.update(|value| *value = !*value)
-                class="transition-all h-3 w-20 bg-gray-200 hover:bg-gray-300 self-center rounded-b-[4rem] rounded-t-[1rem] mt-3"
+                on:click=move |_| setter.update(|value| *value = !*value)
+                class="animate-pulse h-3 w-20 bg-gray-200 hover:bg-gray-300 self-center rounded-b-[4rem] rounded-t-[1rem] mt-3"
             />
         </div>
     </article>
