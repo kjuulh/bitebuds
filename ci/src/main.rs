@@ -138,7 +138,7 @@ async fn main() -> eyre::Result<()> {
         .with_workdir("/app")
         .with_directory("/app", rust_builder.directory("/app/target").id().await?)
         .with_env_variable("LEPTOS_SITE_ADDRESS", "0.0.0.0:3000")
-        .with_entrypoint(vec!["./server/release/ssr_mode_axum"]);
+        .with_entrypoint(vec!["/app/server/release/ssr_mode_axum"]);
 
     prod.publish(format!("docker.io/kasperhermansen/bitebuds:{tag}"))
         .await?;
