@@ -7,7 +7,7 @@ description: |
   God gammeldags oksesteg med en intens og fyldig brun sauce. Gammeldags oksesteg
   er rigtig simremad som gør de fleste glade. Så server en gammeldags oksesteg for
   din gæster... både de unge og de gamle.
-time: 2023-03-06
+time: 2025-03-06
 ---
 
 Some article

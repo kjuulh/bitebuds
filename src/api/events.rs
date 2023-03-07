@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use cfg_if::cfg_if;
 use leptos::*;
 use serde::{Deserialize, Serialize};
@@ -10,11 +12,9 @@ cfg_if! {
         use lazy_static::lazy_static;
 
         lazy_static! {
-            static ref EVENTSTORE: EventStore = EventStore::default();
+            static ref EVENTSTORE: EventStore = EventStore::new(PathBuf::from("articles"));
         }
         async fn get_upcoming_events_fn() -> Result<UpcomingEventsOverview, ServerFnError> {
-            let current_time = chrono::Utc::now();
-
             let mut events: Vec<EventOverview> = EVENTSTORE
                 .get_upcoming_events()
                 .await
@@ -24,7 +24,7 @@ cfg_if! {
                 .map(|data| data.clone().into())
                 .collect();
 
-            events.sort_by(|a, b| a.time.cmp(&b.time));
+            events.sort_by(|a, b| a.time.cmp(&b.time))          ;
 
             Ok(UpcomingEventsOverview { events })
         }
@@ -33,8 +33,11 @@ cfg_if! {
                 .get_event(event_id)
                 .await
                 .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
-
             Ok(event)
+        }
+
+        pub async fn boostrap() -> Result<(), ServerFnError> {
+            EVENTSTORE.bootstrap().await.map_err(|e| ServerFnError::ServerError(e.to_string()))
         }
     }
 }

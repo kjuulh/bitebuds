@@ -30,3 +30,8 @@ command = "cargo"
 args = ["install", "--path", "crates/biteme"]
 workspace = false
 install_crate = "cargo-all-features"
+
+[tasks.ci]
+command = "cargo"
+args = ["run", "-p", "ci"]
+workspace = false

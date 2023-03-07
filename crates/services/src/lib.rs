@@ -1,14 +1,9 @@
+use cached::proc_macro::once;
+use domain::{Event, Image, Metadata};
+use gitevents_sdk::events::EventResponse;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Arc;
-
-use cached::proc_macro::{cached, once};
-use domain::{Event, Image, Metadata};
-use serde::{Deserialize, Serialize};
-
-pub struct EventStore {
-    pub path: PathBuf,
-    events: Arc<tokio::sync::RwLock<Vec<Event>>>,
-}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RawImage {
@@ -81,28 +76,89 @@ impl From<RawImage> for Image {
     }
 }
 
+struct InnerEventStore {
+    url: Option<String>,
+    pub path: PathBuf,
+    events: Arc<tokio::sync::RwLock<Vec<Event>>>,
+}
+
+#[derive(Clone)]
+pub struct EventStore {
+    inner: Arc<InnerEventStore>,
+}
+
 impl EventStore {
     pub fn new(path: PathBuf) -> Self {
+        let article_repo_url = std::env::var("BITE_ARTICLE_REPO_URL")
+            .map(|a| (a != "").then(|| a))
+            .unwrap_or(None);
         Self {
-            path,
-            events: Default::default(),
+            inner: Arc::new(InnerEventStore {
+                url: article_repo_url,
+                path,
+                events: Default::default(),
+            }),
         }
     }
 
+    pub async fn bootstrap(&self) -> eyre::Result<()> {
+        tracing::info!("boostrapping event_store");
+        //let mut event_path = self.inner.path.clone();
+        //event_path.push("events");
+
+        //let events = fetch_events(event_path.clone()).await?;
+
+        //let mut e = self.inner.events.write().await;
+        //*e = events;
+
+        if let Some(repo_url) = self.inner.url.clone() {
+            tracing::info!(repo_url = repo_url, "subscribing to repo");
+            let inner = self.inner.clone();
+
+            tokio::task::spawn(async move {
+                gitevents_sdk::builder::Builder::new()
+                    .set_generic_git_url(repo_url)
+                    .set_scheduler_opts(&gitevents_sdk::cron::SchedulerOpts {
+                        duration: std::time::Duration::from_secs(30),
+                    })
+                    .action(move |req| {
+                        let inner = inner.clone();
+
+                        async move {
+                            tracing::info!("updating articles");
+                            let mut event_path = req.git.path.clone();
+                            event_path.push("articles/events");
+
+                            tracing::debug!(
+                                path = event_path.display().to_string(),
+                                "reading from"
+                            );
+
+                            let events = fetch_events(event_path).await.unwrap();
+
+                            let mut e = inner.events.write().await;
+                            *e = events.clone();
+
+                            Ok(EventResponse {})
+                        }
+                    })
+                    .execute()
+                    .await
+                    .unwrap();
+            });
+        }
+
+        Ok(())
+    }
+
     pub async fn get_upcoming_events(&self) -> eyre::Result<Vec<Event>> {
-        let mut event_path = self.path.clone();
-        event_path.push("events");
-
-        let events = fetch_events(event_path).await?;
-
-        let mut e = self.events.write().await;
-        *e = events.clone();
+        let events = self.inner.events.read().await.clone();
 
         Ok(events)
     }
 
     pub async fn get_event(&self, event_id: uuid::Uuid) -> eyre::Result<Option<Event>> {
-        let events = self.events.read().await;
+        let events = self.inner.events.read().await;
 
         let event = events.iter().find(|e| e.id == event_id);
 
@@ -110,7 +166,6 @@ impl EventStore {
     }
 }
 
-#[once(time = 60, result = true, sync_writes = true)]
 pub async fn fetch_events(event_path: PathBuf) -> eyre::Result<Vec<Event>> {
     let mut dir = tokio::fs::read_dir(event_path).await?;
 
@@ -140,8 +195,11 @@ pub async fn fetch_events(event_path: PathBuf) -> eyre::Result<Vec<Event>> {
 impl Default for EventStore {
     fn default() -> Self {
         Self {
-            path: PathBuf::from("articles"),
-            events: Default::default(),
+            inner: Arc::new(InnerEventStore {
+                url: Default::default(),
+                path: PathBuf::from("articles"),
+                events: Default::default(),
+            }),
         }
     }
 }

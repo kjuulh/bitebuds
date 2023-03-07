@@ -1,16 +1,24 @@
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
-    use axum::{
-        extract::{Extension, Path},
-        routing::{get, post},
-        Router,
-    };
+    use axum::{extract::Extension, routing::post, Router};
     use leptos::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use ssr_modes_axum::app::*;
     use ssr_modes_axum::fallback::file_and_error_handler;
     use std::sync::Arc;
+    use tracing::metadata::LevelFilter;
+
+    std::env::set_var(
+        "BITE_ARTICLE_REPO_URL",
+        "git@git.front.kjuulh.io:kjuulh/articles.git",
+    );
+
+    tracing_subscriber::fmt()
+        .with_max_level(LevelFilter::TRACE)
+        .init();
+
+    ssr_modes_axum::api::events::boostrap().await.unwrap();
 
     let conf = get_configuration(None).await.unwrap();
     let addr = conf.leptos_options.site_addr;
