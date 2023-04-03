@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use domain::{Event, Image};
 use inquire::validator::ValueRequiredValidator;
 use regex::Regex;
@@ -89,7 +91,10 @@ async fn generate_article() -> eyre::Result<()> {
         description.unwrap_or("".into())
     );
 
-    tokio::fs::write(format!("articles/events/{}.md", slug), contents).await?;
+    let mut vault_path = PathBuf::from(std::env::var("BITEME_ROOT").unwrap());
+    vault_path.push(format!("areas/food/events/{}.md", slug));
+
+    tokio::fs::write(vault_path, contents).await?;
 
     Ok(())
 }

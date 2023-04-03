@@ -1,7 +1,7 @@
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
     let _ = dotenv::dotenv();
-    let rust_image = "rustlang/rust:nightly";
+    let rust_image = "docker.io/rustlang/rust:nightly";
 
     let client = dagger_sdk::connect().await?;
 
@@ -178,7 +178,7 @@ async fn main() -> eyre::Result<()> {
 
     let update_deployment = client
         .container()
-        .from("kasperhermansen/update-deployment:1680472594")
+        .from("docker.io/kasperhermansen/update-deployment:1680548342")
         .with_env_variable("GIT_USERNAME", "kjuulh")
         .with_env_variable("GIT_PASSWORD", std::env::var("GIT_PASSWORD").unwrap())
         .with_exec(vec![

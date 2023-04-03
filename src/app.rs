@@ -13,6 +13,8 @@ pub fn App(cx: Scope) -> impl IntoView {
         <Stylesheet id="leptos" href="/pkg/ssr_modes.css" />
         <Title text="Bitebuds" />
 
+        <script defer="true" data-domain="bitebuds.front.kjuulh.io" src="https://plausible.front.kjuulh.io/js/script.js"/>
+
         <Router>
             <div class="app grid lg:grid-cols-[25%,50%,25%] sm:grid-cols-[10%,80%,10%] grid-cols-[5%,90%,5%]">
                 <main class="main col-start-2">
