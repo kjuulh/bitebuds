@@ -20,7 +20,7 @@ cfg_if! {
                 .await
                 .map_err(|e| ServerFnError::ServerError(e.to_string()))?
                 .iter()
-                .filter(|d| d.time.gt(&chrono::Utc::now().date_naive()))
+                .filter(|d| d.time.ge(&chrono::Utc::now().date_naive()))
                 .map(|data| data.clone().into())
                 .collect();
 

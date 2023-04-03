@@ -80,6 +80,7 @@ struct InnerEventStore {
     url: Option<String>,
     pub path: PathBuf,
     events: Arc<tokio::sync::RwLock<Vec<Event>>>,
+    url_path: Option<String>,
 }
 
 #[derive(Clone)]
@@ -92,9 +93,13 @@ impl EventStore {
         let article_repo_url = std::env::var("BITE_ARTICLE_REPO_URL")
             .map(|a| (a != "").then(|| a))
             .unwrap_or(None);
+        let article_repo_path = std::env::var("BITE_ARTICLE_REPO_PATH")
+            .map(|a| (a != "").then(|| a))
+            .unwrap_or(None);
         Self {
             inner: Arc::new(InnerEventStore {
                 url: article_repo_url,
+                url_path: article_repo_path,
                 path,
                 events: Default::default(),
             }),
@@ -127,7 +132,7 @@ impl EventStore {
                         async move {
                             tracing::info!("updating articles");
                             let mut event_path = req.git.path.clone();
-                            event_path.push("articles/events");
+                            event_path.push(inner.url_path.as_ref().unwrap());
 
                             tracing::debug!(
                                 path = event_path.display().to_string(),
@@ -199,6 +204,7 @@ impl Default for EventStore {
                 url: Default::default(),
                 path: PathBuf::from("articles"),
                 events: Default::default(),
+                url_path: Some("articles/events".into()),
             }),
         }
     }

@@ -6,8 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dagger-sdk = "0.2.15"
+dagger-sdk = "0.2.19"
 eyre = "0.6.8"
 color-eyre = "0.6.2"
-tokio = { version = "1.26.0", features = ["full"] }
+tokio = { version = "1.27.0", features = ["full"] }
 chrono.workspace = true
+dotenv = "0.15.0"
