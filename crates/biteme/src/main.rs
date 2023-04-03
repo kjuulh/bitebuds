@@ -11,7 +11,12 @@ async fn main() -> eyre::Result<()> {
     color_eyre::install()?;
 
     let cli = clap::Command::new("biteme")
-        .subcommand(clap::Command::new("generate").subcommand(clap::Command::new("article")));
+        .subcommand_required(true)
+        .subcommand(
+            clap::Command::new("generate")
+                .subcommand_required(true)
+                .subcommand(clap::Command::new("article")),
+        );
 
     let args = std::env::args();
 
